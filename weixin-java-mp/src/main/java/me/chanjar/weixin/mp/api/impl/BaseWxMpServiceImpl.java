@@ -27,7 +27,6 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.config.WxMpConfigStorage;
 import me.chanjar.weixin.mp.enums.TicketType;
 import me.chanjar.weixin.mp.enums.WxMpApiUrl;
-import me.chanjar.weixin.mp.util.WxMpConfigStorageHolder;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -73,6 +72,8 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
 
   private int retrySleepMillis = 1000;
   private int maxRetryTimes = 5;
+
+  private WxMpConfigStoreHolderI wxMpConfigStoreHolderI;
 
   @Override
   public boolean checkSignature(String timestamp, String nonce, String signature) {
@@ -375,12 +376,14 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
       return this.configStorageMap.values().iterator().next();
     }
 
-    return this.configStorageMap.get(WxMpConfigStorageHolder.get());
+//    return this.configStorageMap.get(WxMpConfigStorageHolder.get());
+    return this.configStorageMap.get(this.wxMpConfigStoreHolderI.get());
   }
 
   @Override
   public void setWxMpConfigStorage(WxMpConfigStorage wxConfigProvider) {
-    final String defaultMpId = WxMpConfigStorageHolder.get();
+//    final String defaultMpId = WxMpConfigStorageHolder.get();
+    final String defaultMpId = this.wxMpConfigStoreHolderI.get();
     this.setMultiConfigStorages(ImmutableMap.of(defaultMpId, wxConfigProvider), defaultMpId);
   }
 
@@ -392,7 +395,8 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
   @Override
   public void setMultiConfigStorages(Map<String, WxMpConfigStorage> configStorages, String defaultMpId) {
     this.configStorageMap = Maps.newHashMap(configStorages);
-    WxMpConfigStorageHolder.set(defaultMpId);
+//    WxMpConfigStorageHolder.set(defaultMpId);
+    this.wxMpConfigStoreHolderI.set(defaultMpId);
     this.initHttp();
   }
 
@@ -416,7 +420,8 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
   @Override
   public WxMpService switchoverTo(String mpId) {
     if (this.configStorageMap.containsKey(mpId)) {
-      WxMpConfigStorageHolder.set(mpId);
+//      WxMpConfigStorageHolder.set(mpId);
+      this.wxMpConfigStoreHolderI.set(mpId);
       return this;
     }
 
@@ -426,7 +431,8 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
   @Override
   public boolean switchover(String mpId) {
     if (this.configStorageMap.containsKey(mpId)) {
-      WxMpConfigStorageHolder.set(mpId);
+//      WxMpConfigStorageHolder.set(mpId);
+      wxMpConfigStoreHolderI.set(mpId);
       return true;
     }
 
@@ -657,5 +663,13 @@ public abstract class BaseWxMpServiceImpl<H, P> implements WxMpService, RequestH
   @Override
   public void setImgProcService(WxMpImgProcService imgProcService) {
     this.imgProcService = imgProcService;
+  }
+
+  public void setWxMpConfigStoreHolderI(WxMpConfigStoreHolderI wxMpConfigStoreHolderI) {
+    this.wxMpConfigStoreHolderI = wxMpConfigStoreHolderI;
+  }
+
+  public WxMpConfigStoreHolderI getWxMpConfigStoreHolderI() {
+    return wxMpConfigStoreHolderI;
   }
 }
